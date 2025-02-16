@@ -1,6 +1,6 @@
 import readline from "readline";
 import lookupStaffPass from "./services/lookupStaffPass";
-import verifyRedemptions from "./services/verifyRedemption";
+import verifyRedemption from "./services/verifyRedemption";
 import redeemGift from "./services/redeemGift";
 import resetRedemptionData from "./utils/resetRedemptionData";
 import {
@@ -11,107 +11,71 @@ import {
   SYSTEM_MESSAGES,
 } from "./config/messages";
 
-// Create a readline interface for interactive user input
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
-
-/**
- * Displays the main menu.
- */
 const displayMenu = () => {
   console.log(MENU_MESSAGES.menuHeader);
   MENU_MESSAGES.menuOptions.forEach((option) => console.log(option));
 };
 
-/**
- * Handles user input by calling the appropriate function.
- * @param question The question to prompt the user.
- * @param callback The function to handle the user's response.
- */
-const promptUser = (question: string, callback: (input: string) => void) => {
+const promptUser = (
+  rl: readline.Interface,
+  question: string,
+  callback: (input: string) => void
+) => {
   rl.question(question, (input) => {
-    if (input.toLowerCase() === "exit") {
+    const trimmedInput = input.trim();
+    if (trimmedInput.toLowerCase() === "exit") {
       console.log(EXIT_MESSAGES.exiting);
       rl.close();
     } else {
-      callback(input);
+      callback(trimmedInput);
     }
   });
 };
 
-/**
- * Handles menu selection.
- */
-const handleUserInput = (option: string) => {
+const handleUserInput = (rl: readline.Interface, option: string) => {
   switch (option) {
     case "1":
-      promptUser(LOOKUP_MESSAGES.enterStaffId, lookupStaff);
+      promptUser(rl, LOOKUP_MESSAGES.enterStaffId, (staffPassId) => {
+        console.log(lookupStaffPass(staffPassId).message);
+        promptMenu(rl);
+      });
       break;
     case "2":
-      promptUser(REDEMPTION_MESSAGES.enterTeamName, verifyRedemption);
+      promptUser(rl, REDEMPTION_MESSAGES.enterTeamName, (teamName) => {
+        console.log(verifyRedemption(teamName).message);
+        promptMenu(rl);
+      });
       break;
     case "3":
-      promptUser(REDEMPTION_MESSAGES.enterTeamName, redeemGiftHandler);
+      promptUser(rl, REDEMPTION_MESSAGES.enterTeamName, (teamName) => {
+        console.log(redeemGift(teamName).message);
+        promptMenu(rl);
+      });
       break;
     default:
       console.log(MENU_MESSAGES.invalidOption);
-      promptMenu();
+      promptMenu(rl);
   }
 };
 
-/**
- * Looks up a staff pass ID and displays the result.
- */
-const lookupStaff = (staffPassId: string) => {
-  const result = lookupStaffPass(staffPassId);
-  console.log(
-    result
-      ? LOOKUP_MESSAGES.foundRecord(
-          staffPassId,
-          result.team_name,
-          result.created_at.toISOString()
-        )
-      : LOOKUP_MESSAGES.noRecordFound(staffPassId)
-  );
-  promptMenu();
-};
-
-/**
- * Verifies if a team is eligible for redemption.
- */
-const verifyRedemption = (teamName: string) => {
-  const result = verifyRedemptions(teamName);
-  console.log(result.message);
-  promptMenu();
-};
-
-/**
- * Redeems a gift for a team.
- */
-const redeemGiftHandler = (teamName: string) => {
-  const result = redeemGift(teamName);
-  console.log(result.message);
-  promptMenu();
-};
-
-/**
- * Prompts the main menu and waits for user input.
- */
-const promptMenu = () => {
+const promptMenu = (rl: readline.Interface) => {
   displayMenu();
-  promptUser(MENU_MESSAGES.promptOption, handleUserInput);
+  promptUser(rl, MENU_MESSAGES.promptOption, (option) =>
+    handleUserInput(rl, option)
+  );
 };
 
-/**
- * Main function to initialize the program.
- */
-const main = async () => {
+export const main = async () => {
   try {
     resetRedemptionData();
     console.log(SYSTEM_MESSAGES.resetData);
-    promptMenu();
+
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+
+    promptMenu(rl);
   } catch (error) {
     console.error(
       SYSTEM_MESSAGES.error(
@@ -121,5 +85,6 @@ const main = async () => {
   }
 };
 
-// Run the application
-main();
+if (require.main === module) {
+  main();
+}

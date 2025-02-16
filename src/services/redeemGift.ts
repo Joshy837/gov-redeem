@@ -1,8 +1,12 @@
 import verifyRedemption from "./verifyRedemption";
-import { RedemptionStatus, RedeemGiftResponse } from "../types/redemptionTypes";
+import {
+  RedemptionStatus,
+  RedeemGiftResponse,
+} from "../interfaces/redemptionTypes";
 import createRedemption from "../utils/createRedemption";
 
 const MESSAGES = {
+  emptyInput: "Invalid input: Team name cannot be empty.",
   success: (teamName: string) =>
     `Success! Team '${teamName}' has redeemed their gift.`,
 };
@@ -13,16 +17,20 @@ const MESSAGES = {
  * @returns A structured response indicating success or failure.
  */
 const redeemGift = (teamName: string): RedeemGiftResponse => {
-  // Check if the team is valid and eligible for redemption
-  const redemptionStatus: RedemptionStatus = verifyRedemption(teamName);
+  const trimmedTeamName = teamName.trim();
+
+  if (!trimmedTeamName) {
+    return { success: false, message: MESSAGES.emptyInput };
+  }
+
+  const redemptionStatus: RedemptionStatus = verifyRedemption(trimmedTeamName);
 
   if (!redemptionStatus.isValid || !redemptionStatus.canRedeem) {
     return { success: false, message: redemptionStatus.message };
   }
 
-  // Proceed with redemption
-  createRedemption(teamName);
-  return { success: true, message: MESSAGES.success(teamName) };
+  createRedemption(trimmedTeamName);
+  return { success: true, message: MESSAGES.success(trimmedTeamName) };
 };
 
 export default redeemGift;

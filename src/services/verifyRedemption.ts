@@ -1,8 +1,9 @@
 import getRedemptions from "../utils/getRedemptions";
 import getStaffMapping from "../utils/getStaffMapping";
-import { RedemptionStatus } from "../types/redemptionTypes";
+import { RedemptionStatus } from "../interfaces/redemptionTypes";
 
 const MESSAGES = {
+  emptyInput: "Invalid input: Team name cannot be empty.",
   invalidTeam: (teamName: string) =>
     `Invalid team name: '${teamName}'. This team does not exist in the staff records.`,
   alreadyRedeemed: (teamName: string) =>
@@ -16,35 +17,47 @@ const MESSAGES = {
  * @param team_name The team name to verify.
  * @returns A structured object containing isValid, canRedeem, and a message.
  */
-const verifyRedemptions = (team_name: string): RedemptionStatus => {
+const verifyRedemption = (team_name: string): RedemptionStatus => {
+  const trimmedTeamName = team_name.trim();
+
+  if (!trimmedTeamName) {
+    return {
+      isValid: false,
+      canRedeem: false,
+      message: MESSAGES.emptyInput,
+    };
+  }
+
   const redemptions = getRedemptions();
   const staffMappings = getStaffMapping();
 
-  // Check if the team exists in staff mappings
-  const isValid = staffMappings.some((team) => team.team_name === team_name);
+  const isValid = staffMappings.some(
+    (team) => team.team_name.trim() === trimmedTeamName
+  );
   if (!isValid) {
     return {
       isValid: false,
       canRedeem: false,
-      message: MESSAGES.invalidTeam(team_name),
+      message: MESSAGES.invalidTeam(trimmedTeamName),
     };
   }
 
-  // Check if the team has already redeemed
-  const alreadyRedeemed = redemptions.some((r) => r.team_name === team_name);
+  const alreadyRedeemed = redemptions.some(
+    (r) => r.team_name.trim() === trimmedTeamName
+  );
   if (alreadyRedeemed) {
     return {
       isValid: true,
       canRedeem: false,
-      message: MESSAGES.alreadyRedeemed(team_name),
+      message: MESSAGES.alreadyRedeemed(trimmedTeamName),
     };
   }
 
   return {
     isValid: true,
     canRedeem: true,
-    message: MESSAGES.canRedeem(team_name),
+    message: MESSAGES.canRedeem(trimmedTeamName),
   };
 };
 
-export default verifyRedemptions;
+export default verifyRedemption;

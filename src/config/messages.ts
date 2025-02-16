@@ -12,10 +12,6 @@ export const MENU_MESSAGES = {
 
 export const LOOKUP_MESSAGES = {
   enterStaffId: "Enter Staff Pass ID: ",
-  noRecordFound: (staffPassId: string) =>
-    `No record found for Staff Pass ID: '${staffPassId}'.\n`,
-  foundRecord: (staffPassId: string, teamName: string, createdAt: string) =>
-    `Found:\n   Staff Pass ID: ${staffPassId}\n   Team Name: ${teamName}\n   Created At: ${createdAt}\n`,
 };
 
 export const REDEMPTION_MESSAGES = {

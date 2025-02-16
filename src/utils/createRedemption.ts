@@ -1,5 +1,5 @@
 import fs from "fs";
-import { Redemption } from "../types/redemptionTypes";
+import { Redemption } from "../interfaces/redemptionTypes";
 import { REDEMPTION_FILE } from "../config/filepaths";
 import getRedemptions from "./getRedemptions"; // ✅ Importing to load existing data
 
@@ -16,12 +16,12 @@ const saveRedemptions = (redemptions: Redemption[]): void => {
  * @param teamName The name of the team redeeming.
  */
 const createRedemption = (teamName: string): void => {
-  const redemptions = getRedemptions(); // ✅ Load existing redemptions
+  const redemptions = getRedemptions();
 
   // Create new redemption entry
   const newRedemption: Redemption = {
     team_name: teamName,
-    redeemed_at: new Date(), // ✅ Store as Date object
+    redeemed_at: new Date(),
   };
 
   // Append new redemption & save updated data
